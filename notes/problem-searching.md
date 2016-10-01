@@ -158,13 +158,23 @@ we will cover later.
 #### Pseudocode
 
 ```javascript
-function DFS(v) {
-    // label v as discovered
-    for (node in Graph.neighbors(v)) {
-        if (!node.isDiscovered()) {
-            DFS(n);
-        }
+// accumlator, return, stacks
+
+DFS(startNode);
+
+function DFS(current) {
+  return DFS(current, {});
+}
+
+function DFS(current, parents) {
+  for (child in chilren) {
+    if (child.isDiscovered) {
+      continue;
     }
+    child.isDiscovered = true;
+    parents.put(current, child);
+    DFS(child, parents);
+  }
 }
 ```
 ### Recursion Review
