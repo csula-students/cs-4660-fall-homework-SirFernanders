@@ -6,6 +6,6 @@ package csula.cs4660.games;
 public class WGCFGameAgentLevel2 {
     public String getAction(boolean[] state) {
         // TODO: implement your BFS/A*
-        return "";
+        return "g";
     }
 }

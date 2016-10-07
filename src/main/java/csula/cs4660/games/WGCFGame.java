@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class WGCFGame {
     private boolean[] WGCFState = {false, false, false, false};
     private int counter = 0;
-    private static final boolean forHuman = true;
+    private static final boolean forHuman = false;
 
     public static void main(String[] args) {
         WGCFGame game = new WGCFGame();

@@ -20,7 +20,8 @@ import java.util.List;
 public class AdjacencyList implements Representation {
     private Map<Node, Collection<Edge>> adjacencyList;
 
-    public AdjacencyList(File file)  {
+
+    public AdjacencyList(File file) {
 
         adjacencyList = new HashMap<>();
 
@@ -35,17 +36,14 @@ public class AdjacencyList implements Representation {
         Node tempNode;
 
 
-
-
-
         //scanner to read the file. Try & Caught to avoid a exception.
         try {
-            Scanner s  = new Scanner(file);
+            Scanner s = new Scanner(file);
             numberOfNodes = Integer.parseInt(s.nextLine());
 
 
             //Pulls how many nodes are in the graph then initiates the map with that many.
-            for (int g=0; g<numberOfNodes;g++){
+            for (int g = 0; g < numberOfNodes; g++) {
                 tempNode = new Node(g);
                 //adds nodes/keys
                 addNode(tempNode);
@@ -56,26 +54,23 @@ public class AdjacencyList implements Representation {
             //Gets the following lines and splits them into an array then puts the information in corresponding locations
             //then calls the add edge function to add the edge to the graph
             while (s.hasNextLine()) {
-                    nextLine = s.nextLine();
-                    split = nextLine.split(":");
-                    placeHolder = Integer.parseInt(split[0]);
-                    fromNode = new Node<>(placeHolder);
-                    placeHolder = Integer.parseInt(split[1]);
-                    toNode = new Node<>(placeHolder);
-                    edgeValue = Integer.parseInt(split[2]);
-                    edge = new Edge(fromNode,toNode,edgeValue);
+                nextLine = s.nextLine();
+                split = nextLine.split(":");
+                placeHolder = Integer.parseInt(split[0]);
+                fromNode = new Node<>(placeHolder);
+                placeHolder = Integer.parseInt(split[1]);
+                toNode = new Node<>(placeHolder);
+                edgeValue = Integer.parseInt(split[2]);
+                edge = new Edge(fromNode, toNode, edgeValue);
 
 
-
-
-                    //add edge/values
-                    addEdge(edge);
+                //add edge/values
+                addEdge(edge);
             }
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-
 
 
     }
