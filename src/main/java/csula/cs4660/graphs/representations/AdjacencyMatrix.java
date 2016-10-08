@@ -157,6 +157,8 @@ public class AdjacencyMatrix implements Representation {
         return null;
     }
 
+
+    //method to make parsing data easier.
     private int parseData (Node x){
         return Integer.parseInt(x.getData().toString());
     }

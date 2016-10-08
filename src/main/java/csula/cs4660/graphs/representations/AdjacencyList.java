@@ -211,9 +211,16 @@ public class AdjacencyList implements Representation {
     @Override
     public int distance(Node from, Node to) {
 
-        //get linked list then pull distance for the second node
-        //need to figure out how to target different edges
-        adjacencyList.get(from);
+        Edge temp;
+        Iterator<Edge> edges = adjacencyList.get(from).iterator();
+        while (edges.hasNext()){
+            temp = edges.next();
+            if(temp.getTo().equals(to)){
+                return temp.getValue();
+            }
+
+        }
+
         return 0;
     }
 

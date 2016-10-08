@@ -1,6 +1,8 @@
 package csula.cs4660.games;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 /**
@@ -8,8 +10,6 @@ import java.util.Queue;
  */
 public class WGCFGameAgent {
     public String getAction(boolean[] state) {
-        // TODO: implement your BFS/A*
-
 
         return "";
 
