@@ -84,9 +84,9 @@ public class AdjacencyList implements Representation {
         if (adjacencyList.get(x).toString().contains(y.toString())){
             return true;
         }
-        else if(adjacencyList.get(y).toString().contains(x.toString())){
-            return true;
-        }
+     //   else if(adjacencyList.get(y).toString().contains(x.toString())){
+     //       return true;
+     //   }
 
         return false;
     }
@@ -131,8 +131,19 @@ public class AdjacencyList implements Representation {
         //then removes any edge going to the node being removed.
         boolean g=false;
         List<Edge> stuff= new ArrayList<>();
-        if(adjacencyList.containsKey(x))g=true;
         if(adjacencyList.containsKey(x)) {
+            g=true;
+            adjacencyList.remove(x);
+            adjacencyList.forEach((node, edges) -> {
+                if(adjacent(node,x)) {
+                    adjacencyList.get(node).forEach(edge -> {
+                        if (edge.getTo().equals(x)) {
+                            stuff.add(edge);
+                        }
+                    });
+                }
+                    });
+            /*************
             adjacencyList.remove(x);
             adjacencyList.forEach((node, edges) -> {
                 adjacencyList.get(node).forEach(edge -> {
@@ -141,7 +152,7 @@ public class AdjacencyList implements Representation {
                     }
                 });
             });
-
+            *******************/
         }
         stuff.forEach(edge -> {
             removeEdge(edge);

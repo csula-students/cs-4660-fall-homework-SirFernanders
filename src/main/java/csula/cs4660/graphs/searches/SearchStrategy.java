@@ -6,7 +6,7 @@ import csula.cs4660.graphs.Node;
 
 import java.util.List;
 
-public interface SearchStrategy {
+public interface  SearchStrategy {
     List<Edge> search(Graph graph, Node source, Node dist);
 }
 
