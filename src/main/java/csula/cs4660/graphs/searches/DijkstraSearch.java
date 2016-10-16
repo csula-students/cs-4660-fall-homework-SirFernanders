@@ -15,3 +15,4 @@ public class DijkstraSearch implements SearchStrategy {
         return null;
     }
 }
+
