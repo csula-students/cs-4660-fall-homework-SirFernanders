@@ -20,7 +20,9 @@ public class WGCFGame {
             if (forHuman) {
                 game.takeAction(in.next());
             } else {
-                game.takeAction(agent.getAction(game.getState()));
+                String action = agent.getAction(game.getState());
+                System.out.println("got action from agent: " + action);
+                game.takeAction(action);
             }
             if (!game.isValidState()) {
                 System.out.println("You lose!");
