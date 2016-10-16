@@ -17,11 +17,12 @@ import java.util.List;
  *
  * TODO: please implement the method body
  */
+
+//Main
 public class AdjacencyList implements Representation {
     private Map<Node, Collection<Edge>> adjacencyList;
 
-
-    public AdjacencyList(File file) {
+    public AdjacencyList(File file)  {
 
         adjacencyList = new HashMap<>();
 
@@ -36,14 +37,17 @@ public class AdjacencyList implements Representation {
         Node tempNode;
 
 
+
+
+
         //scanner to read the file. Try & Caught to avoid a exception.
         try {
-            Scanner s = new Scanner(file);
+            Scanner s  = new Scanner(file);
             numberOfNodes = Integer.parseInt(s.nextLine());
 
 
             //Pulls how many nodes are in the graph then initiates the map with that many.
-            for (int g = 0; g < numberOfNodes; g++) {
+            for (int g=0; g<numberOfNodes;g++){
                 tempNode = new Node(g);
                 //adds nodes/keys
                 addNode(tempNode);
@@ -61,7 +65,9 @@ public class AdjacencyList implements Representation {
                 placeHolder = Integer.parseInt(split[1]);
                 toNode = new Node<>(placeHolder);
                 edgeValue = Integer.parseInt(split[2]);
-                edge = new Edge(fromNode, toNode, edgeValue);
+                edge = new Edge(fromNode,toNode,edgeValue);
+
+
 
 
                 //add edge/values
@@ -71,6 +77,7 @@ public class AdjacencyList implements Representation {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+
 
 
     }
