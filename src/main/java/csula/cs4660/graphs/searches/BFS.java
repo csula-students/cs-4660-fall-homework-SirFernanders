@@ -27,7 +27,6 @@ public class BFS implements SearchStrategy {
         Node currentParent;
 
         while (!found){
-            System.out.println(currentNode);
             if(currentNode!=null){
                 List<Node> neighbors = graph.neighbors(currentNode);
                 Iterator<Node> iterator = neighbors.iterator();
