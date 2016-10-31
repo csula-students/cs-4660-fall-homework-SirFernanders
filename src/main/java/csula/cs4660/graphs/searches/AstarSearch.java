@@ -5,134 +5,113 @@ import csula.cs4660.graphs.Edge;
 import csula.cs4660.graphs.Graph;
 import csula.cs4660.graphs.Node;
 
-import java.util.*;
-import java.util.PriorityQueue;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Perform A* search
  */
 public class AstarSearch implements SearchStrategy {
-    List<NodeExtended> explored = new LinkedList<>();
-    Map<Node<Tile>,Node<Tile>> parent = new HashMap<>(); //Map Layout is <<Child>, <Parent>>
-    List path = new ArrayList<>();
 
+    List<Node<Tile>> frontier;
+    List<Node<Tile>> exploredSet;
+    HashMap<Node<Tile>,Edge> parent;
+    HashMap<Node<Tile>,Integer> gScore;
+    HashMap<Node<Tile>,Integer> fScore;
+    List<Edge> path;
 
-    NodeExtended current;
-    NodeExtended currentChild = new NodeExtended();
-    NodeExtended isInQueue = new NodeExtended();
-    int tempG;
-
-
-    NodeExtended start = new NodeExtended();
-
-    Queue<NodeExtended> placeholder = new LinkedList<>();
-
-
+    public AstarSearch(){
+        frontier = new ArrayList<Node<Tile>>();
+        exploredSet = new ArrayList<Node<Tile>>();
+        parent = new HashMap<Node<Tile>,Edge>();
+        gScore = new HashMap<Node<Tile>,Integer>();
+        fScore = new HashMap<Node<Tile>,Integer>();
+        path = new ArrayList<Edge>();
+    }
     @Override
     public List<Edge> search(Graph graph, Node source, Node dist) {
-
-        start.node = source;
-        start.f_scores = heuristicValue(source,dist);
-        start.g_scores = 1;
-
-
-        java.util.PriorityQueue<NodeExtended> queue = new PriorityQueue<>(20, (i, j) -> {
-            if(i.f_scores > j.f_scores){
-                return 1;
+        frontier.add(source);
+        gScore.put(source,0);
+        fScore.put(source,heuristicCost(source,dist));
+        while(!frontier.isEmpty()){
+            Node<Tile> currentNode = findNodeWithLowestFScore();
+            if(currentNode.equals(dist)){
+                //return constructPath(currentNode);
+                while(dist!=source){
+                    path.add(parent.get(dist));
+                    dist = parent.get(dist).getFrom();
+                }
+                Collections.reverse(path);
+                return path;
             }
-
-            else if (i.f_scores < j.f_scores){
-                return -1;
-            }
-
-            else{
-                return 0;
-            }
-        }
-        );
-
-
-        queue.add(start);
-
-
-
-
-        while (!queue.isEmpty()){
-            current = queue.poll();
-            if(current.node.equals(dist)){
-                break;
-            }
-            explored.add(current);
-            List<Node> neighbors = graph.neighbors(current.node);
-            Iterator<Node> iterator = neighbors.iterator();
-            while(iterator.hasNext()){
-                currentChild.node = iterator.next();
-                if(currentChild.node.getData().getType().equals("##")){
-                    System.out.println(currentChild.node);
-                    if(!explored.contains(currentChild.node)) {
-                        tempG = current.g_scores + 1;
-                        if (!queue.contains(currentChild)) {
-                            currentChild.f_scores = heuristicValue(currentChild.node, dist);
-                            currentChild.g_scores = tempG;
-                            parent.put(currentChild.node, current.node);
-                            queue.add(currentChild);
-
-                        }
-                        else {
-                            while (!queue.isEmpty()) {
-                                isInQueue = queue.poll();
-                                if (isInQueue.node.equals(currentChild.node)) {
-                                    break;
-                                } else {
-                                    placeholder.add(isInQueue);
-                                }
-                            }
-                            while (!placeholder.isEmpty()) {
-                                queue.add(placeholder.poll());
-                            }
-                            if (tempG >= isInQueue.g_scores) {
-                                isInQueue.g_scores = tempG;
-                                isInQueue.f_scores = heuristicValue(isInQueue.node, dist);
-                                parent.put(isInQueue.node, current.node);
-                                queue.add(isInQueue);
-                            }
-                        }
+            frontier.remove(currentNode);
+            exploredSet.add(currentNode);
+            List<Node> neighbors = graph.neighbors(currentNode);
+            for(Node<Tile> eachNeighbor:neighbors){
+                if(!eachNeighbor.getData().getType().equals("##")){
+                    if(exploredSet.contains(eachNeighbor)){
+                        continue;
                     }
+                    int tempGScore = gScore.get(currentNode) + 1;
+                    if(!frontier.contains(eachNeighbor)){
+                        frontier.add(eachNeighbor);
+                    }
+                    else if(tempGScore>=gScore.get(eachNeighbor)){
+                        continue;
+                    }
+                    parent.put(eachNeighbor,new Edge(currentNode,eachNeighbor,1));
+                    gScore.put(eachNeighbor,tempGScore);
+                    fScore.put(eachNeighbor,gScore.get(eachNeighbor)+heuristicCost(eachNeighbor,dist));
                 }
             }
-            System.out.println(queue.size());
         }
-        if (parent.containsKey(dist)) {
-            return getPath(parent, source, dist);
-        }
-
         return null;
     }
-    private int heuristicValue(Node from, Node to){
-        Tile fromTile = (Tile)from.getData();
-        Tile toTile = (Tile)to.getData();
-        int dx = Math.abs(fromTile.getX()-toTile.getX());
-        int dy = Math.abs(fromTile.getY()-toTile.getY());
-        int d = 1;
-
-        return d*(dx+dy);
-    }
-
-    private List<Edge> getPath (Map<Node<Tile>,Node<Tile>> parents, Node<Tile> start, Node<Tile> end){
-        List<Edge> path = new ArrayList<>();
-
-        while(!end.getData().equals(start.getData())){
-            path.add(new Edge(parents.get(end),end,1));
-            end = parents.get(end);
+    private Node<Tile> findNodeWithLowestFScore() {
+        // TODO Auto-generated method stub
+        int min = fScore.get(frontier.get(0));
+        int temp = min;
+        Node<Tile> shortestNode = null;
+        for(Node<Tile> n : frontier){
+            if(fScore.containsKey(n)){
+                if(fScore.get(n)<min){
+                    min = fScore.get(n);
+                    shortestNode = n;
+                }
+            }
         }
-        Collections.reverse(path);
-        return path;
+        if(temp==min){
+            shortestNode = frontier.get(0);
+        }
+        return shortestNode;
     }
-}
+    private Node<Tile> findNodeWithLowestFScore(Node<Tile> neighbor) {
+        // TODO Auto-generated method stub
+        int min = fScore.get(neighbor);
+        int temp = min;
+        Node<Tile> shortestNode = null;
+        for(Node<Tile> n : frontier){
+            if(fScore.containsKey(n)){
+                if(fScore.get(n)<min){
+                    min = fScore.get(n);
+                    shortestNode = n;
+                }
+            }
+        }
+        if(temp==min){
+            shortestNode = frontier.get(0);
+        }
+        return shortestNode;
+    }
+    private int heuristicCost(Node source, Node dist) {
+        // TODO Auto-generated method stub
+        Tile sourceTile = (Tile)source.getData();
+        Tile destTile = (Tile)dist.getData();
+        int dx = Math.abs(sourceTile.getX()-destTile.getX());
+        int dy = Math.abs(sourceTile.getY()-destTile.getY());
+        return 1*(dx+dy);
+    }
 
-class NodeExtended {
-    Node<Tile> node;
-    int g_scores = 0;
-    int f_scores = 0;
 }
-
