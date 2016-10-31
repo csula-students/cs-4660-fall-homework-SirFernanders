@@ -6,7 +6,6 @@ import csula.cs4660.graphs.Node;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -36,19 +35,16 @@ public class DFS implements SearchStrategy {
                     break;
                 }
                 node = iteratorOfNeighbors.next();
-
                 if (node.equals(finalD)) {
                     parents.add(new Edge(from, finalD, graph.distance(from, finalD)));
                     done=true;
                     break;
-
                 }
                 length++;
                 parents.add(new Edge(from, node, graph.distance(from,node)));
                 parents = DFS(graph, node, finalD, parents,length);
                 if (done){
                     break;
-
                 }
                 parents.remove(length-1);
                 length--;

@@ -14,12 +14,13 @@ import java.util.*;
  * TODO: Please fill the body of methods in this class
  */
 public class ObjectOriented implements Representation {
-    private Collection<Node> nodes;
-    private Collection<Edge> edges;
+    private Collection<Node> nodes = new ArrayList<>();
+    private Collection<Edge> edges = new ArrayList<>();
+
+    //had to add hashmap because collection to slow when using it for a*
+    private HashMap <Node, Collection<Edge>> hashyTheHashMap = new HashMap<>();
 
     public ObjectOriented(File file) {
-        nodes = new LinkedList<>();
-        edges = new LinkedList<>();
         int numberOfNodes;
         String nextLine;
         String[] split;
@@ -36,7 +37,7 @@ public class ObjectOriented implements Representation {
 
             //adds the nodes locally to avoid looking through the whole list everytime since we already know each value will be unique.
             for(int i=0; i<numberOfNodes;i++){
-                nodes.add(new Node(i));
+                addNode(new Node(i));
             }
             //adds edges to linked list locally to avoid looking for node list everytime.
             while(s.hasNextLine()){
@@ -48,7 +49,7 @@ public class ObjectOriented implements Representation {
                 toNode = new Node<>(placeHolder);
                 edgeValue = Integer.parseInt(split[2]);
                 edge = new Edge(fromNode,toNode,edgeValue);
-                edges.add(edge);
+                addEdge(edge);
             }
 
 
@@ -63,15 +64,16 @@ public class ObjectOriented implements Representation {
 
     @Override
     public boolean adjacent(Node x, Node y) {
-        Iterator<Edge> iterator = edges.iterator();
-        Edge tempEdge;
-        while(iterator.hasNext()){
-            tempEdge=iterator.next();
-            if(tempEdge.getFrom().equals(x)&&tempEdge.getTo().equals(y)){
-                return true;
+        if(nodes.contains(x)&&nodes.contains(y)) {
+            Iterator<Edge> iterator = edges.iterator();
+            Edge tempEdge;
+            while (iterator.hasNext()) {
+                tempEdge = iterator.next();
+                if (tempEdge.getFrom().equals(x) && tempEdge.getTo().equals(y)) {
+                    return true;
+                }
             }
         }
-
         return false;
 
     }
@@ -79,12 +81,14 @@ public class ObjectOriented implements Representation {
     @Override
     public List<Node> neighbors(Node x) {
         List tempList = new LinkedList();
-        Iterator<Node> iterator = nodes.iterator();
-        Node tempNode;
-        while (iterator.hasNext()){
-            tempNode=iterator.next();
-            if(adjacent(x,tempNode)){
-                tempList.add(tempNode);
+        if(nodes.contains(x)) {
+            Iterator<Node> iterator = nodes.iterator();
+            Node tempNode;
+            while (iterator.hasNext()) {
+                tempNode = iterator.next();
+                if (adjacent(x, tempNode)) {
+                    tempList.add(tempNode);
+                }
             }
         }
 
@@ -93,65 +97,73 @@ public class ObjectOriented implements Representation {
 
     @Override
     public boolean addNode(Node x) {
-        Node tempNode;
-        Iterator<Node> iterator = nodes.iterator();
-        while(iterator.hasNext()){
-            tempNode=iterator.next();
-            if(tempNode.equals(x)){
-                return false;
-            }
+        if(hashyTheHashMap.containsKey(x)){
+            return false;
         }
         nodes.add(x);
+        hashyTheHashMap.put(x, new ArrayList<>());
         return true;
 
     }
 
     @Override
     public boolean removeNode(Node x) {
-        Iterator<Edge> edgeIterator = edges.iterator();
-        List<Edge> toRemove = new LinkedList<>();
-        Edge tempEdge;
-        Boolean nodeExist = nodes.remove(x);
-        if(nodeExist) {
+        if(nodes.contains(x)) {
+            Iterator<Edge> edgeIterator = edges.iterator();
+            List<Edge> toRemove = new LinkedList<>();
+            Edge tempEdge;
+            nodes.remove(x);
+
             while (edgeIterator.hasNext()) {
                 tempEdge = edgeIterator.next();
                 if (tempEdge.getTo().equals(x) || tempEdge.getFrom().equals(x)) {
-                    toRemove.add(tempEdge);
+                        toRemove.add(tempEdge);
                 }
             }
+
+            toRemove.forEach(edge -> {
+                removeEdge(edge);
+            });
+            return true;
         }
-        toRemove.forEach(edge -> {removeEdge(edge);});
-        return nodeExist;
+        return false;
     }
 
     @Override
     public boolean addEdge(Edge x) {
-        Edge tempEdge;
-        Iterator<Edge> iterator = edges.iterator();
-        while(iterator.hasNext()){
-            tempEdge=iterator.next();
-            if(tempEdge.equals(x)){
-                return false;
+
+        if(hashyTheHashMap.containsKey(x.getFrom()) && hashyTheHashMap.containsKey(x.getTo())){
+            Collection<Edge> temp = hashyTheHashMap.get(x.getFrom());
+            for(Edge e:temp){
+                if(e.equals(x)){
+                    return false;
+                }
             }
+            edges.add(x);
+            temp.add(x);
+            hashyTheHashMap.put(x.getFrom(), temp);
+            return true;
         }
-        edges.add(x);
-        return true;
+        return false;
     }
 
     @Override
     public boolean removeEdge(Edge x) {
+
         return edges.remove(x);
     }
 
     @Override
     public int distance(Node from, Node to) {
-        Edge tempEdge;
-        Iterator<Edge> iterator = edges.iterator();
-        while(iterator.hasNext()){
-            tempEdge=iterator.next();
-            if(tempEdge.getFrom().equals(from)&&tempEdge.getTo().equals(to)){
-                return tempEdge.getValue();
+        if(nodes.contains(from)&&nodes.contains(to)) {
+            Edge tempEdge;
+            Iterator<Edge> iterator = edges.iterator();
+            while (iterator.hasNext()) {
+                tempEdge = iterator.next();
+                if (tempEdge.getFrom().equals(from) && tempEdge.getTo().equals(to)) {
+                    return tempEdge.getValue();
 
+                }
             }
         }
         return 0;

@@ -18,12 +18,11 @@ import java.util.List;
  * TODO: please implement the method body
  */
 public class AdjacencyList implements Representation {
-    private Map<Node, Collection<Edge>> adjacencyList;
+    private Map<Node, Collection<Edge>> adjacencyList = new HashMap<>();
 
 
     public AdjacencyList(File file) {
 
-        adjacencyList = new HashMap<>();
 
         int numberOfNodes;
         int placeHolder;
@@ -95,19 +94,12 @@ public class AdjacencyList implements Representation {
     public List<Node> neighbors(Node x) {
 
         List<Node> temp = new LinkedList<>() ;
-        for (int c=0; c<adjacencyList.size();c++){
-
-            //This if statement is to avoid calling itself as a neighbor.
-            if(new Node(c).toString().equals(x.toString())){
-                c++;
+        if (adjacencyList.containsKey(x)) {
+            Iterator<Edge> edges = adjacencyList.get(x).iterator();
+            while(edges.hasNext()){
+                temp.add(edges.next().getTo());
             }
-            if(adjacencyList.get(x).toString().contains(new Node(c).toString())){
-                temp.add(new Node(c));
-
-            }
-
         }
-
         return temp;
 
     }
@@ -116,7 +108,7 @@ public class AdjacencyList implements Representation {
     public boolean addNode(Node x) {
         //add key
 
-        if (!adjacencyList.containsKey(x)) {
+        if (adjacencyList.get(x)==null) {
             adjacencyList.put(x, new ArrayList<>());
             return true;
         }
@@ -166,26 +158,27 @@ public class AdjacencyList implements Representation {
         Edge temp;
         boolean i= false;
 
-        Iterator<Edge> edges = adjacencyList.get(x.getFrom()).iterator();
+        if(adjacencyList.containsKey(x.getFrom())) {
+            Iterator<Edge> edges = adjacencyList.get(x.getFrom()).iterator();
 
-        while(edges.hasNext()) {
-            temp = edges.next();
-            if(temp.getTo().equals(x.getTo())){
-                if(temp.getFrom().equals(x.getFrom())) {
-                    i = false;
-                    break;
+            while (edges.hasNext()) {
+                temp = edges.next();
+                if (temp.getTo().equals(x.getTo())) {
+                    if (temp.getFrom().equals(x.getFrom())) {
+                        i = false;
+                        break;
+                    }
+                } else {
+
+                    i = true;
                 }
-            }
-            else{
 
+            }
+
+            if (!edges.hasNext() || i == true) {
+                adjacencyList.get(x.getFrom()).add(x);
                 i = true;
             }
-
-        }
-
-        if (!edges.hasNext()||i==true){
-            adjacencyList.get(x.getFrom()).add(x);
-            i=true;
         }
 
         return i;

@@ -89,7 +89,7 @@ public class DijkstraSearch implements SearchStrategy {
     }
 }
 //Found how to do this at http://stackoverflow.com/questions/4011560/priority-queue-in-java
-  class PriorityQueue<T> {
+class PriorityQueue<T> {
 
     private java.util.PriorityQueue<IntPriorityComparableWrapper<T>> queue;
 
@@ -145,4 +145,3 @@ public class DijkstraSearch implements SearchStrategy {
     }
 
 }
-

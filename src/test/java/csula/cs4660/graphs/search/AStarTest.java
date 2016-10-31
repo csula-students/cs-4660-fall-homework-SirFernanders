@@ -1,14 +1,11 @@
 package csula.cs4660.graphs.search;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
 import csula.cs4660.games.models.Tile;
-import csula.cs4660.graphs.Edge;
 import csula.cs4660.graphs.Graph;
 import csula.cs4660.graphs.Node;
 import csula.cs4660.graphs.representations.Representation;
 import csula.cs4660.graphs.searches.AstarSearch;
-import csula.cs4660.graphs.searches.BFS;
 import csula.cs4660.graphs.utils.Parser;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,70 +45,70 @@ public class AStarTest {
         Graph[] graphs = new Graph[3];
 
         graphs[0] = Parser.readRectangularGridFile(
-            Representation.STRATEGY.ADJACENCY_LIST,
-            file
+                Representation.STRATEGY.ADJACENCY_LIST,
+                file
         );
 
         graphs[1] = Parser.readRectangularGridFile(
-            Representation.STRATEGY.ADJACENCY_MATRIX,
-            file
+                Representation.STRATEGY.ADJACENCY_MATRIX,
+                file
         );
 
         graphs[2] = Parser.readRectangularGridFile(
-            Representation.STRATEGY.OBJECT_ORIENTED,
-            file
+                Representation.STRATEGY.OBJECT_ORIENTED,
+                file
         );
 
         return graphs;
     }
-    
+
     private Graph buildGraph(File file) {
         return Parser.readRectangularGridFile(
-            Representation.STRATEGY.ADJACENCY_LIST,
-            file
+                Representation.STRATEGY.ADJACENCY_LIST,
+                file
         );
     }
 
     @Test
     public void aWarmUpSearches() {
         Arrays.stream(graph1s)
-            .forEach(graph -> {
-                Parser.converEdgesToAction(
-                    graph.search(
-                        new AstarSearch(),
-                        new Node<>(new Tile(3, 0, "@1")),
-                        new Node<>(new Tile(4, 4, "@6")))
-                );
-            });
+                .forEach(graph -> {
+                    Parser.converEdgesToAction(
+                            graph.search(
+                                    new AstarSearch(),
+                                    new Node<>(new Tile(3, 0, "@1")),
+                                    new Node<>(new Tile(4, 4, "@6")))
+                    );
+                });
         Arrays.stream(graph2s)
-            .forEach(graph -> {
-                Parser.converEdgesToAction(
-                    graph.search(
-                        new AstarSearch(),
-                        new Node<>(new Tile(3, 0, "@1")),
-                        new Node<>(new Tile(13, 0, "@8")))
-                );
-            });
+                .forEach(graph -> {
+                    Parser.converEdgesToAction(
+                            graph.search(
+                                    new AstarSearch(),
+                                    new Node<>(new Tile(3, 0, "@1")),
+                                    new Node<>(new Tile(13, 0, "@8")))
+                    );
+                });
         Arrays.stream(graph3s)
-            .forEach(graph -> {
-                Parser.converEdgesToAction(
-                    graph.search(
-                        new AstarSearch(),
-                        new Node<>(new Tile(3, 0, "@1")),
-                        new Node<>(new Tile(2, 7, "@2")))
-                );
-            });
+                .forEach(graph -> {
+                    Parser.converEdgesToAction(
+                            graph.search(
+                                    new AstarSearch(),
+                                    new Node<>(new Tile(3, 0, "@1")),
+                                    new Node<>(new Tile(2, 7, "@2")))
+                    );
+                });
         Parser.converEdgesToAction(
-            graph4.search(
-                new AstarSearch(),
-                new Node<>(new Tile(4, 0, "@1")),
-                new Node<>(new Tile(6, 201, "@4")))
+                graph4.search(
+                        new AstarSearch(),
+                        new Node<>(new Tile(4, 0, "@1")),
+                        new Node<>(new Tile(6, 201, "@4")))
         );
         Parser.converEdgesToAction(
-            graph5.search(
-                new AstarSearch(),
-                new Node<>(new Tile(4, 0, "@1")),
-                new Node<>(new Tile(201, 206, "@5")))
+                graph5.search(
+                        new AstarSearch(),
+                        new Node<>(new Tile(4, 0, "@1")),
+                        new Node<>(new Tile(201, 206, "@5")))
         );
         System.out.println("Warn up searches spends " + timer.stop());
     }
@@ -125,18 +122,18 @@ public class AStarTest {
     @Test(timeout=15)
     public void testAStar1() {
         Arrays.stream(graph1s)
-            .forEach(graph -> {
-                assertEquals(
-                    "Test A* on graph 1",
-                    "SSSSE",
-                    Parser.converEdgesToAction(
-                        graph.search(
-                            new AstarSearch(),
-                            new Node<>(new Tile(3, 0, "@1")),
-                            new Node<>(new Tile(4, 4, "@6")))
-                    )
-                );
-            });
+                .forEach(graph -> {
+                    assertEquals(
+                            "Test A* on graph 1",
+                            "SSSSE",
+                            Parser.converEdgesToAction(
+                                    graph.search(
+                                            new AstarSearch(),
+                                            new Node<>(new Tile(3, 0, "@1")),
+                                            new Node<>(new Tile(4, 4, "@6")))
+                            )
+                    );
+                });
 
         System.out.println("A star 1 spends " + timer.stop());
     }
@@ -144,35 +141,35 @@ public class AStarTest {
     @Test(timeout=15)
     public void testAStar2() {
         Arrays.stream(graph2s)
-            .forEach(graph -> {
-                String result = Parser.converEdgesToAction(
-                    graph.search(
-                        new AstarSearch(),
-                        new Node<>(new Tile(3, 0, "@1")),
-                        new Node<>(new Tile(13, 0, "@8")))
-                );
-                String expectedOutput = "SSSSEEEEEEEEEEEEENNWNWNW";
-                assertEquals(
-                    "Test grid 2 number of S",
-                    findNumberOfCharacter(expectedOutput, "([N])"),
-                    findNumberOfCharacter(result, "([N])")
-                );
-                assertEquals(
-                    "Test grid 2 number of S",
-                    findNumberOfCharacter(expectedOutput, "([E])"),
-                    findNumberOfCharacter(result, "([E])")
-                );
-                assertEquals(
-                    "Test grid 2 number of S",
-                    findNumberOfCharacter(expectedOutput, "([W])"),
-                    findNumberOfCharacter(result, "([W])")
-                );
-                assertEquals(
-                    "Test grid 2 number of E",
-                    findNumberOfCharacter(expectedOutput, "([S])"),
-                    findNumberOfCharacter(result, "([S])")
-                );
-            });
+                .forEach(graph -> {
+                    String result = Parser.converEdgesToAction(
+                            graph.search(
+                                    new AstarSearch(),
+                                    new Node<>(new Tile(3, 0, "@1")),
+                                    new Node<>(new Tile(13, 0, "@8")))
+                    );
+                    String expectedOutput = "SSSSEEEEEEEEEEEEENNWNWNW";
+                    assertEquals(
+                            "Test grid 2 number of S",
+                            findNumberOfCharacter(expectedOutput, "([N])"),
+                            findNumberOfCharacter(result, "([N])")
+                    );
+                    assertEquals(
+                            "Test grid 2 number of S",
+                            findNumberOfCharacter(expectedOutput, "([E])"),
+                            findNumberOfCharacter(result, "([E])")
+                    );
+                    assertEquals(
+                            "Test grid 2 number of S",
+                            findNumberOfCharacter(expectedOutput, "([W])"),
+                            findNumberOfCharacter(result, "([W])")
+                    );
+                    assertEquals(
+                            "Test grid 2 number of E",
+                            findNumberOfCharacter(expectedOutput, "([S])"),
+                            findNumberOfCharacter(result, "([S])")
+                    );
+                });
 
         System.out.println("A star 2 spends " + timer.stop());
     }
@@ -180,18 +177,18 @@ public class AStarTest {
     @Test(timeout=15)
     public void testAStar3() {
         Arrays.stream(graph3s)
-            .forEach(graph -> {
-                assertEquals(
-                    "Test A* on graph 3",
-                    "SSSSEESESSWWWW",
-                    Parser.converEdgesToAction(
-                        graph.search(
-                            new AstarSearch(),
-                            new Node<>(new Tile(3, 0, "@1")),
-                            new Node<>(new Tile(2, 7, "@2")))
-                    )
-                );
-            });
+                .forEach(graph -> {
+                    assertEquals(
+                            "Test A* on graph 3",
+                            "SSSSEESESSWWWW",
+                            Parser.converEdgesToAction(
+                                    graph.search(
+                                            new AstarSearch(),
+                                            new Node<>(new Tile(3, 0, "@1")),
+                                            new Node<>(new Tile(2, 7, "@2")))
+                            )
+                    );
+                });
 
         System.out.println("A star 3 spends " + timer.stop());
     }
@@ -201,20 +198,20 @@ public class AStarTest {
         String expectedOutput = "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSESE";
 
         String result = Parser.converEdgesToAction(
-            graph4.search(
-                new AstarSearch(),
-                new Node<>(new Tile(4, 0, "@1")),
-                new Node<>(new Tile(6, 201, "@4")))
+                graph4.search(
+                        new AstarSearch(),
+                        new Node<>(new Tile(4, 0, "@1")),
+                        new Node<>(new Tile(6, 201, "@4")))
         );
         assertEquals(
-            "Test grid 4 number of S",
-            findNumberOfCharacter(expectedOutput, "([S])"),
-            findNumberOfCharacter(result, "([S])")
+                "Test grid 4 number of S",
+                findNumberOfCharacter(expectedOutput, "([S])"),
+                findNumberOfCharacter(result, "([S])")
         );
         assertEquals(
-            "Test grid 4 number of E",
-            findNumberOfCharacter(expectedOutput, "([E])"),
-            findNumberOfCharacter(result, "([E])")
+                "Test grid 4 number of E",
+                findNumberOfCharacter(expectedOutput, "([E])"),
+                findNumberOfCharacter(result, "([E])")
         );
 
         System.out.println("A star 4 spends " + timer.stop());
@@ -225,20 +222,20 @@ public class AStarTest {
         String expectedOutput = "SSSSSSSSSSEESSEESESESSEESSEESESESESESSEESESESESESESSESEESESESSESEESSEESSEESESESESESSESEESSESESEESSESEESESSESEESESESESESSEESESESESESESESESESSEESESESESESESSEESSEESESSESEESSEESESSEESESESESESESSEESESESSEESESSESEESSEESESESESSEESSESEESESSESESESESEESSEESESESESESESESESESESESESESESESSEESESSEESSEESESESESSEESESESSEESESESSEESESESESESESESESESESESESESSESEESSEESESSEESESSEESSEESESSEESESESESESESESESESESSEESEEEESSSSSE";
 
         String result = Parser.converEdgesToAction(
-            graph5.search(
-                new AstarSearch(),
-                new Node<>(new Tile(4, 0, "@1")),
-                new Node<>(new Tile(201, 206, "@5")))
+                graph5.search(
+                        new AstarSearch(),
+                        new Node<>(new Tile(4, 0, "@1")),
+                        new Node<>(new Tile(201, 206, "@5")))
         );
         assertEquals(
-            "Test grid 5 number of S",
-            findNumberOfCharacter(expectedOutput, "([S])"),
-            findNumberOfCharacter(result, "([S])")
+                "Test grid 5 number of S",
+                findNumberOfCharacter(expectedOutput, "([S])"),
+                findNumberOfCharacter(result, "([S])")
         );
         assertEquals(
-            "Test grid 5 number of E",
-            findNumberOfCharacter(expectedOutput, "([E])"),
-            findNumberOfCharacter(result, "([E])")
+                "Test grid 5 number of E",
+                findNumberOfCharacter(expectedOutput, "([E])"),
+                findNumberOfCharacter(result, "([E])")
         );
 
         System.out.println("A star 5 spends " + timer.stop());
