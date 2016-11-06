@@ -1,3 +1,7 @@
+import sys
+import math
+
+
 # neighbors is Dic of all possible neighbors for any given node
 neighbors = {(7, 3): [(8, 3), (6, 3), (7, 4), (7, 2)], (6, 9): [(7, 9), (5, 9), (6, 10), (6, 8)],
              (17, 11): [(18, 11), (16, 11), (17, 12), (17, 10)], (19, 19): [(20, 19), (18, 19), (19, 18)],
@@ -410,3 +414,25 @@ playerFour = []
 def dead_player(player_moves):
     for i in player_moves:
         visited[i] = False
+
+# Auto-generated code below aims at helping you parse
+# the standard input according to the problem statement.
+
+
+# game loop
+while True:
+    # n: total number of players (2 to 4).
+    # p: your player number (0 to 3).
+    n, p = [int(i) for i in input().split()]
+    for i in range(n):
+        # x0: starting X coordinate of lightcycle (or -1)
+        # y0: starting Y coordinate of lightcycle (or -1)
+        # x1: starting X coordinate of lightcycle (can be the same as X0 if you play before this player)
+        # y1: starting Y coordinate of lightcycle (can be the same as Y0 if you play before this player)
+        x0, y0, x1, y1 = [int(j) for j in input().split()]
+
+    # Write an action using print
+    # To debug: print("Debug messages...", file=sys.stderr)
+
+    # A single line with UP, DOWN, LEFT or RIGHT
+    print("LEFT")
