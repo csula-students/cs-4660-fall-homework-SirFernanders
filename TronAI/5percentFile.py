@@ -14,7 +14,7 @@ def get_score(starts):
     Function for calculating the score given current starting positions for all bots
     """
     # create a nested dict called graph to store which bot (o) contains which
-    # spot (n) at which iteration (it)
+    # spot (n) at which iteration (it)d
     graphs = {i: {} for i in range(n_players)}
     # graphset just contains a copy that is being updated from the current `occupied` places
     # once no changes for any bot, indicates it stops

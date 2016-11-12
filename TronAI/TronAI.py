@@ -1,5 +1,33 @@
+from functools import wraps
 import sys
 import math
+import errno
+import os
+import signal
+
+
+class TimeoutError(Exception):
+    pass
+
+
+def timeout(seconds=10.0, error_message=os.strerror(errno.ETIME)):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            raise TimeoutError(error_message)
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.setitimer(0, seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+
+        return wraps(func)(wrapper)
+
+    return decorator
+
 
 
 # neighbors is Dic of all possible neighbors for any given node
@@ -405,19 +433,19 @@ visited = {(7, 3): False, (6, 9): False, (17, 11): False, (19, 19): False, (16, 
            (28, 0): False, (2, 15): False, (27, 4): False, (5, 2): False, (29, 5): False, (26, 4): False}
 
 # tracks players moves
-playerOne = []
-playerTwo = []
-playerThree = []
-playerFour = []
+playersMoves = {0: [], 1: [], 2: [], 3: []}
+possibleMoves = {}
+current_X = 0
+current_Y = 0
 
 
 def dead_player(player_moves):
     for i in player_moves:
         visited[i] = False
 
+
 # Auto-generated code below aims at helping you parse
 # the standard input according to the problem statement.
-
 
 # game loop
 while True:
@@ -431,8 +459,19 @@ while True:
         # y1: starting Y coordinate of lightcycle (can be the same as Y0 if you play before this player)
         x0, y0, x1, y1 = [int(j) for j in input().split()]
 
+        # Checks if player is dead and if they are not adds their current location to visited.
+        if x0 == -1:
+            dead_player(playersMoves[i])
+
+        else:
+            visited[(x1, y1)] = True
+            playersMoves[i].append("(" + str(x1) + "," + str(y1) + ")")
+
+        if i == p:
+            current_X = x0
+            current_Y = y0
+
     # Write an action using print
     # To debug: print("Debug messages...", file=sys.stderr)
 
-    # A single line with UP, DOWN, LEFT or RIGHT
-    print("LEFT")
+
