@@ -4,7 +4,8 @@ import math
 import errno
 import os
 import signal
-
+import queue
+import array
 
 class TimeoutError(Exception):
     pass
@@ -433,13 +434,20 @@ visited = {(7, 3): False, (6, 9): False, (17, 11): False, (19, 19): False, (16, 
            (28, 0): False, (2, 15): False, (27, 4): False, (5, 2): False, (29, 5): False, (26, 4): False}
 
 # tracks players moves
-playersMoves = {0: [], 1: [], 2: [], 3: []}
+player1 = queue.Queue()
+player2 = queue.Queue()
+player3 = queue.Queue()
+player4 = queue.Queue()
+playerMoves = {1: player1, 2: player2, 3: player3, 4: player4}
 possibleMoves = {}
 current_X = 0
 current_Y = 0
+workingOnDeadPlayerMoves = False
+dead_player()
 
 
 def dead_player(player_moves):
+    workingOnDeadPlayerMoves = True
     for i in player_moves:
         visited[i] = False
 
@@ -461,11 +469,14 @@ while True:
 
         # Checks if player is dead and if they are not adds their current location to visited.
         if x0 == -1:
-            dead_player(playersMoves[i])
+            try:
+                dead_player(playerMoves[i])
+            except TimeoutError as e:
+                workingOnDeadPlayerMoves = True
 
         else:
             visited[(x1, y1)] = True
-            playersMoves[i].append("(" + str(x1) + "," + str(y1) + ")")
+            playerMoves[i].put("(" + str(x1) + "," + str(y1) + ")")
 
         if i == p:
             current_X = x0
