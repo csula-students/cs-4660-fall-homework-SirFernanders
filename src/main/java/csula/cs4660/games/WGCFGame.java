@@ -1,6 +1,6 @@
 package csula.cs4660.games;
 
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Wolf, goat, cabbage farmer game
