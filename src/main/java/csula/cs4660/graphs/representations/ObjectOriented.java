@@ -1,5 +1,6 @@
 package csula.cs4660.graphs.representations;
 
+import csula.cs4660.games.models.MiniMaxState;
 import csula.cs4660.graphs.Edge;
 import csula.cs4660.graphs.Node;
 
@@ -94,9 +95,10 @@ public class ObjectOriented implements Representation {
                     tempList.add(tempNode);
                 }
             }
+            return tempList;
         }
 
-        return tempList;
+        return null;
     }
 
     @Override
@@ -117,7 +119,7 @@ public class ObjectOriented implements Representation {
             List<Edge> toRemove = new LinkedList<>();
             Edge tempEdge;
             nodes.remove(x);
-
+            hashyTheHashMap.remove(x);
             while (edgeIterator.hasNext()) {
                 tempEdge = edgeIterator.next();
                 if (tempEdge.getTo().equals(x) || tempEdge.getFrom().equals(x)) {
@@ -188,6 +190,8 @@ public class ObjectOriented implements Representation {
                 result = Optional.of(next);
             }
         }
+
+
         return result;
     }
 }
