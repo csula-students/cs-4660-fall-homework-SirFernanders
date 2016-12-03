@@ -6,10 +6,10 @@ import csula.cs4660.graphs.Edge;
 import csula.cs4660.graphs.Node;
 
 import java.io.File;
-
 import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.List;
+
 
 /**
  * Adjacency list is probably the most common implementation to store the unknown
@@ -17,14 +17,12 @@ import java.util.List;
  *
  * TODO: please implement the method body
  */
-
-//Main
 public class AdjacencyList implements Representation {
-    private Map<Node, Collection<Edge>> adjacencyList;
+    private Map<Node, Collection<Edge>> adjacencyList = new HashMap<>();
 
-    public AdjacencyList(File file)  {
 
-        adjacencyList = new HashMap<>();
+    public AdjacencyList(File file) {
+
 
         int numberOfNodes;
         int placeHolder;
@@ -37,17 +35,14 @@ public class AdjacencyList implements Representation {
         Node tempNode;
 
 
-
-
-
         //scanner to read the file. Try & Caught to avoid a exception.
         try {
-            Scanner s  = new Scanner(file);
+            Scanner s = new Scanner(file);
             numberOfNodes = Integer.parseInt(s.nextLine());
 
 
             //Pulls how many nodes are in the graph then initiates the map with that many.
-            for (int g=0; g<numberOfNodes;g++){
+            for (int g = 0; g < numberOfNodes; g++) {
                 tempNode = new Node(g);
                 //adds nodes/keys
                 addNode(tempNode);
@@ -65,9 +60,7 @@ public class AdjacencyList implements Representation {
                 placeHolder = Integer.parseInt(split[1]);
                 toNode = new Node<>(placeHolder);
                 edgeValue = Integer.parseInt(split[2]);
-                edge = new Edge(fromNode,toNode,edgeValue);
-
-
+                edge = new Edge(fromNode, toNode, edgeValue);
 
 
                 //add edge/values
@@ -77,7 +70,6 @@ public class AdjacencyList implements Representation {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-
 
 
     }
@@ -91,9 +83,9 @@ public class AdjacencyList implements Representation {
         if (adjacencyList.get(x).toString().contains(y.toString())){
             return true;
         }
-        else if(adjacencyList.get(y).toString().contains(x.toString())){
-            return true;
-        }
+        //   else if(adjacencyList.get(y).toString().contains(x.toString())){
+        //       return true;
+        //   }
 
         return false;
     }
@@ -102,19 +94,12 @@ public class AdjacencyList implements Representation {
     public List<Node> neighbors(Node x) {
 
         List<Node> temp = new LinkedList<>() ;
-        for (int c=0; c<adjacencyList.size();c++){
-
-            //This if statement is to avoid calling itself as a neighbor.
-            if(new Node(c).toString().equals(x.toString())){
-                c++;
+        if (adjacencyList.containsKey(x)) {
+            Iterator<Edge> edges = adjacencyList.get(x).iterator();
+            while(edges.hasNext()){
+                temp.add(edges.next().getTo());
             }
-            if(adjacencyList.get(x).toString().contains(new Node(c).toString())){
-                temp.add(new Node(c));
-
-            }
-
         }
-
         return temp;
 
     }
@@ -123,7 +108,7 @@ public class AdjacencyList implements Representation {
     public boolean addNode(Node x) {
         //add key
 
-        if (!adjacencyList.containsKey(x)) {
+        if (adjacencyList.get(x)==null) {
             adjacencyList.put(x, new ArrayList<>());
             return true;
         }
@@ -138,17 +123,28 @@ public class AdjacencyList implements Representation {
         //then removes any edge going to the node being removed.
         boolean g=false;
         List<Edge> stuff= new ArrayList<>();
-        if(adjacencyList.containsKey(x))g=true;
         if(adjacencyList.containsKey(x)) {
+            g=true;
             adjacencyList.remove(x);
             adjacencyList.forEach((node, edges) -> {
-                adjacencyList.get(node).forEach(edge -> {
-                    if (edge.getTo().equals(x)) {
-                        stuff.add(edge);
-                    }
-                });
+                if(adjacent(node,x)) {
+                    adjacencyList.get(node).forEach(edge -> {
+                        if (edge.getTo().equals(x)) {
+                            stuff.add(edge);
+                        }
+                    });
+                }
             });
-
+            /*************
+             adjacencyList.remove(x);
+             adjacencyList.forEach((node, edges) -> {
+             adjacencyList.get(node).forEach(edge -> {
+             if (edge.getTo().equals(x)) {
+             stuff.add(edge);
+             }
+             });
+             });
+             *******************/
         }
         stuff.forEach(edge -> {
             removeEdge(edge);
@@ -162,26 +158,27 @@ public class AdjacencyList implements Representation {
         Edge temp;
         boolean i= false;
 
-        Iterator<Edge> edges = adjacencyList.get(x.getFrom()).iterator();
+        if(adjacencyList.containsKey(x.getFrom())) {
+            Iterator<Edge> edges = adjacencyList.get(x.getFrom()).iterator();
 
-        while(edges.hasNext()) {
-            temp = edges.next();
-            if(temp.getTo().equals(x.getTo())){
-                if(temp.getFrom().equals(x.getFrom())) {
-                    i = false;
-                    break;
+            while (edges.hasNext()) {
+                temp = edges.next();
+                if (temp.getTo().equals(x.getTo())) {
+                    if (temp.getFrom().equals(x.getFrom())) {
+                        i = false;
+                        break;
+                    }
+                } else {
+
+                    i = true;
                 }
-            }
-            else{
 
+            }
+
+            if (!edges.hasNext() || i == true) {
+                adjacencyList.get(x.getFrom()).add(x);
                 i = true;
             }
-
-        }
-
-        if (!edges.hasNext()||i==true){
-            adjacencyList.get(x.getFrom()).add(x);
-            i=true;
         }
 
         return i;
@@ -218,9 +215,16 @@ public class AdjacencyList implements Representation {
     @Override
     public int distance(Node from, Node to) {
 
-        //get linked list then pull distance for the second node
-        //need to figure out how to target different edges
-        adjacencyList.get(from);
+        Edge temp;
+        Iterator<Edge> edges = adjacencyList.get(from).iterator();
+        while (edges.hasNext()){
+            temp = edges.next();
+            if(temp.getTo().equals(to)){
+                return temp.getValue();
+            }
+
+        }
+
         return 0;
     }
 
@@ -228,4 +232,6 @@ public class AdjacencyList implements Representation {
     public Optional<Node> getNode(int index) {
         return null;
     }
+
+
 }
