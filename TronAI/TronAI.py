@@ -11,6 +11,9 @@ class TimeoutError(Exception):
     pass
 
 
+def output(*args):
+    sys.stderr.write(', '.join([str(arg) for arg in args]) + "\n")
+
 def timeout(seconds=10.0, error_message=os.strerror(errno.ETIME)):
     def decorator(func):
         def _handle_timeout(signum, frame):
@@ -31,8 +34,18 @@ def timeout(seconds=10.0, error_message=os.strerror(errno.ETIME)):
 
 
 
+def direction(old, new):
+
+    if old[0] < new[0]:
+        return "RIGHT"
+    if old[1] < new[1]:
+        return "DOWN"
+    if old[0] > new[0]:
+        return "LEFT"
+    return "UP"
+
 # neighbors is Dic of all possible neighbors for any given node
-neighbors = {(7, 3): [(8, 3), (6, 3), (7, 4), (7, 2)], (6, 9): [(7, 9), (5, 9), (6, 10), (6, 8)],
+NEIGHBOURS = {(7, 3): [(8, 3), (6, 3), (7, 4), (7, 2)], (6, 9): [(7, 9), (5, 9), (6, 10), (6, 8)],
              (17, 11): [(18, 11), (16, 11), (17, 12), (17, 10)], (19, 19): [(20, 19), (18, 19), (19, 18)],
              (16, 6): [(17, 6), (15, 6), (16, 7), (16, 5)], (7, 12): [(8, 12), (6, 12), (7, 13), (7, 11)],
              (24, 5): [(25, 5), (23, 5), (24, 6), (24, 4)], (19, 4): [(20, 4), (18, 4), (19, 5), (19, 3)],
@@ -333,156 +346,83 @@ neighbors = {(7, 3): [(8, 3), (6, 3), (7, 4), (7, 2)], (6, 9): [(7, 9), (5, 9), 
              (27, 4): [(28, 4), (26, 4), (27, 5), (27, 3)], (5, 2): [(6, 2), (4, 2), (5, 3), (5, 1)],
              (29, 5): [(28, 5), (29, 6), (29, 4)], (26, 4): [(27, 4), (25, 4), (26, 5), (26, 3)]}
 
-# visited is Dic of nodes that have already been visited by a player
-visited = {(7, 3): False, (6, 9): False, (17, 11): False, (19, 19): False, (16, 6): False, (7, 12): False,
-           (24, 5): False, (19, 4): False, (18, 4): False, (22, 19): False, (21, 9): False, (20, 7): False,
-           (18, 19): False, (22, 6): False, (21, 6): False, (29, 7): False, (8, 5): False, (23, 7): False,
-           (10, 8): False, (9, 0): False, (27, 9): False, (28, 19): False, (11, 5): False, (10, 7): False,
-           (14, 18): False, (27, 10): False, (12, 6): False, (10, 18): False, (0, 17): False, (15, 11): False,
-           (14, 1): False, (13, 7): False, (12, 17): False, (26, 17): False, (0, 4): False, (15, 4): False,
-           (1, 1): False, (4, 10): False, (3, 2): False, (2, 6): False, (5, 11): False, (4, 5): False, (28, 10): False,
-           (27, 5): False, (6, 0): False, (4, 16): False, (26, 7): False, (7, 5): False, (25, 12): False,
-           (20, 19): False, (19, 13): False, (7, 0): False, (16, 19): False, (24, 4): False, (17, 7): False,
-           (20, 14): False, (18, 10): False, (17, 18): False, (23, 19): False, (21, 15): False, (16, 8): False,
-           (8, 12): False, (22, 12): False, (9, 9): False, (23, 9): False, (10, 14): False, (26, 3): False,
-           (8, 18): False, (25, 0): False, (11, 15): False, (9, 19): False, (15, 16): False, (14, 8): False,
-           (13, 0): False, (12, 8): False, (11, 16): False, (25, 16): False, (15, 13): False, (13, 13): False,
-           (28, 16): False, (2, 18): False, (0, 14): False, (3, 11): False, (2, 1): False, (1, 15): False,
-           (4, 12): False, (28, 1): False, (2, 12): False, (27, 14): False, (5, 1): False, (29, 4): False,
-           (3, 17): False, (27, 2): False, (16, 7): False, (6, 14): False, (25, 9): False, (19, 18): False,
-           (26, 6): False, (17, 6): False, (7, 15): False, (25, 13): False, (19, 7): False, (18, 5): False,
-           (7, 1): False, (22, 16): False, (21, 8): False, (20, 0): False, (18, 16): False, (22, 7): False,
-           (21, 5): False, (8, 6): False, (23, 6): False, (22, 10): False, (10, 9): False, (9, 7): False,
-           (11, 4): False, (10, 4): False, (14, 19): False, (12, 7): False, (11, 9): False, (10, 19): False,
-           (0, 18): False, (15, 10): False, (14, 6): False, (13, 6): False, (12, 18): False, (1, 19): False,
-           (0, 5): False, (15, 7): False, (13, 19): False, (1, 0): False, (0, 8): False, (4, 11): False, (3, 5): False,
-           (2, 7): False, (5, 10): False, (4, 6): False, (28, 11): False, (6, 1): False, (5, 7): False, (4, 17): False,
-           (24, 1): False, (27, 6): False, (27, 3): False, (16, 1): False, (19, 12): False, (17, 12): False,
-           (7, 17): False, (21, 17): False, (20, 15): False, (19, 1): False, (18, 11): False, (7, 6): False,
-           (23, 18): False, (24, 2): False, (21, 14): False, (8, 13): False, (22, 13): False, (9, 8): False,
-           (8, 0): False, (23, 8): False, (26, 13): False, (10, 15): False, (8, 19): False, (11, 14): False,
-           (9, 18): False, (15, 19): False, (14, 9): False, (12, 9): False, (11, 19): False, (15, 12): False,
-           (13, 12): False, (25, 3): False, (2, 19): False, (0, 15): False, (24, 14): False, (3, 10): False,
-           (1, 14): False, (4, 13): False, (28, 2): False, (2, 13): False, (29, 16): False, (5, 0): False,
-           (29, 3): False, (3, 16): False, (6, 15): False, (16, 9): False, (16, 10): False, (7, 14): False,
-           (6, 18): False, (19, 6): False, (18, 2): False, (17, 10): False, (22, 17): False, (25, 15): False,
-           (20, 1): False, (18, 17): False, (16, 2): False, (24, 15): False, (22, 4): False, (21, 4): False,
-           (8, 7): False, (23, 1): False, (22, 11): False, (9, 6): False, (11, 7): False, (10, 5): False,
-           (14, 16): False, (12, 0): False, (11, 8): False, (10, 16): False, (0, 19): False, (24, 16): False,
-           (14, 7): False, (13, 5): False, (12, 19): False, (26, 12): False, (1, 18): False, (0, 6): False,
-           (15, 6): False, (13, 18): False, (1, 7): False, (0, 9): False, (24, 13): False, (3, 4): False, (2, 4): False,
-           (5, 9): False, (4, 7): False, (28, 4): False, (6, 6): False, (5, 6): False, (4, 18): False, (7, 7): False,
-           (5, 19): False, (19, 15): False, (17, 3): False, (7, 16): False, (21, 16): False, (20, 8): False,
-           (19, 0): False, (18, 8): False, (17, 16): False, (29, 18): False, (21, 13): False, (7, 4): False,
-           (22, 2): False, (9, 15): False, (8, 1): False, (23, 11): False, (29, 8): False, (10, 12): False,
-           (25, 8): False, (26, 1): False, (11, 1): False, (9, 17): False, (15, 18): False, (14, 14): False,
-           (12, 10): False, (11, 18): False, (15, 15): False, (13, 11): False, (2, 16): False, (0, 0): False,
-           (8, 14): False, (1, 13): False, (24, 12): False, (4, 14): False, (28, 3): False, (2, 10): False,
-           (5, 15): False, (29, 2): False, (3, 19): False, (6, 12): False, (29, 11): False, (27, 17): False,
-           (17, 4): False, (16, 12): False, (6, 19): False, (19, 9): False, (18, 3): False, (17, 9): False,
-           (20, 2): False, (18, 14): False, (22, 5): False, (17, 17): False, (16, 0): False, (23, 0): False,
-           (22, 8): False, (16, 15): False, (9, 5): False, (23, 13): False, (24, 7): False, (11, 6): False,
-           (10, 2): False, (14, 17): False, (12, 1): False, (11, 11): False, (10, 17): False, (28, 18): False,
-           (24, 17): False, (14, 4): False, (13, 4): False, (12, 12): False, (1, 17): False, (0, 7): False,
-           (15, 1): False, (13, 17): False, (26, 14): False, (1, 6): False, (0, 10): False, (17, 13): False,
-           (27, 0): False, (3, 7): False, (2, 5): False, (1, 11): False, (24, 11): False, (5, 8): False, (4, 0): False,
-           (28, 5): False, (6, 7): False, (5, 5): False, (4, 19): False, (21, 18): False, (16, 3): False,
-           (6, 10): False, (5, 18): False, (19, 14): False, (17, 2): False, (7, 19): False, (20, 9): False,
-           (19, 3): False, (18, 9): False, (27, 15): False, (21, 12): False, (20, 4): False, (8, 15): False,
-           (22, 3): False, (25, 10): False, (9, 14): False, (8, 2): False, (23, 10): False, (10, 13): False,
-           (9, 3): False, (11, 0): False, (9, 16): False, (14, 15): False, (12, 11): False, (28, 17): False,
-           (15, 14): False, (14, 2): False, (13, 10): False, (2, 17): False, (26, 18): False, (0, 1): False,
-           (3, 12): False, (25, 19): False, (1, 12): False, (29, 9): False, (4, 15): False, (3, 1): False,
-           (2, 11): False, (24, 6): False, (24, 10): False, (5, 14): False, (29, 1): False, (3, 18): False,
-           (6, 13): False, (29, 14): False, (7, 8): False, (6, 16): False, (20, 16): False, (19, 8): False,
-           (18, 0): False, (17, 8): False, (16, 16): False, (20, 3): False, (18, 15): False, (27, 12): False,
-           (21, 2): False, (8, 9): False, (23, 3): False, (22, 9): False, (25, 11): False, (9, 4): False,
-           (7, 11): False, (23, 12): False, (10, 3): False, (24, 3): False, (12, 2): False, (11, 10): False,
-           (29, 17): False, (29, 10): False, (24, 18): False, (14, 5): False, (13, 3): False, (12, 13): False,
-           (1, 16): False, (3, 13): False, (15, 0): False, (28, 15): False, (13, 16): False, (25, 2): False,
-           (1, 5): False, (0, 11): False, (27, 16): False, (3, 6): False, (2, 2): False, (1, 10): False, (4, 1): False,
-           (28, 6): False, (26, 11): False, (6, 4): False, (5, 4): False, (26, 10): False, (25, 14): False,
-           (16, 4): False, (6, 11): False, (5, 17): False, (19, 17): False, (25, 1): False, (17, 1): False,
-           (7, 18): False, (20, 10): False, (19, 2): False, (18, 6): False, (24, 8): False, (21, 11): False,
-           (20, 5): False, (27, 13): False, (22, 0): False, (9, 13): False, (8, 3): False, (23, 5): False,
-           (25, 4): False, (10, 10): False, (9, 2): False, (16, 13): False, (27, 11): False, (11, 3): False,
-           (14, 12): False, (12, 4): False, (15, 9): False, (14, 3): False, (13, 9): False, (26, 19): False,
-           (0, 2): False, (28, 14): False, (3, 15): False, (1, 3): False, (4, 8): False, (3, 0): False, (2, 8): False,
-           (5, 13): False, (29, 0): False, (28, 8): False, (29, 19): False, (6, 2): False, (29, 13): False,
-           (16, 14): False, (6, 17): False, (20, 17): False, (19, 11): False, (18, 1): False, (17, 15): False,
-           (16, 17): False, (27, 1): False, (20, 12): False, (18, 12): False, (23, 17): False, (21, 1): False,
-           (26, 2): False, (24, 0): False, (8, 10): False, (23, 2): False, (22, 14): False, (9, 11): False,
-           (23, 15): False, (25, 5): False, (10, 0): False, (8, 16): False, (12, 3): False, (11, 13): False,
-           (24, 19): False, (14, 10): False, (13, 2): False, (12, 14): False, (25, 18): False, (15, 3): False,
-           (13, 15): False, (27, 19): False, (1, 4): False, (0, 12): False, (28, 13): False, (3, 9): False,
-           (2, 3): False, (1, 9): False, (4, 2): False, (28, 7): False, (2, 14): False, (6, 5): False, (5, 3): False,
-           (29, 6): False, (26, 15): False, (16, 5): False, (6, 8): False, (5, 16): False, (19, 16): False,
-           (17, 0): False, (7, 13): False, (20, 11): False, (19, 5): False, (18, 7): False, (22, 18): False,
-           (21, 10): False, (20, 6): False, (7, 9): False, (18, 18): False, (22, 1): False, (21, 7): False,
-           (9, 12): False, (8, 4): False, (23, 4): False, (26, 0): False, (10, 11): False, (9, 1): False,
-           (17, 5): False, (25, 6): False, (11, 2): False, (10, 6): False, (16, 11): False, (14, 13): False,
-           (12, 5): False, (0, 16): False, (15, 8): False, (14, 0): False, (13, 8): False, (12, 16): False,
-           (26, 16): False, (0, 3): False, (15, 5): False, (3, 14): False, (1, 2): False, (28, 12): False,
-           (4, 9): False, (3, 3): False, (2, 9): False, (27, 7): False, (5, 12): False, (4, 4): False, (28, 9): False,
-           (26, 5): False, (24, 9): False, (6, 3): False, (29, 12): False, (8, 8): False, (7, 2): False, (7, 10): False,
-           (21, 3): False, (20, 18): False, (19, 10): False, (17, 14): False, (16, 18): False, (21, 19): False,
-           (20, 13): False, (18, 13): False, (17, 19): False, (23, 16): False, (21, 0): False, (8, 11): False,
-           (22, 15): False, (9, 10): False, (27, 8): False, (23, 14): False, (26, 9): False, (10, 1): False,
-           (8, 17): False, (26, 8): False, (25, 7): False, (11, 12): False, (29, 15): False, (15, 17): False,
-           (14, 11): False, (13, 1): False, (12, 15): False, (11, 17): False, (25, 17): False, (15, 2): False,
-           (13, 14): False, (27, 18): False, (0, 13): False, (3, 8): False, (2, 0): False, (1, 8): False, (4, 3): False,
-           (28, 0): False, (2, 15): False, (27, 4): False, (5, 2): False, (29, 5): False, (26, 4): False}
+#Variables for tracking play order
+order = ""
+orderSet = False
 
-# tracks players moves
-player1 = queue.Queue()
-player2 = queue.Queue()
-player3 = queue.Queue()
-player4 = queue.Queue()
-playerMoves = {1: player1, 2: player2, 3: player3, 4: player4}
-possibleMoves = {}
-current_X = 0
-current_Y = 0
+#Variables for tracking dead players
 workingOnDeadPlayerMoves = False
-dead_player()
+dead_players =[]
 
-
-def dead_player(player_moves):
-    workingOnDeadPlayerMoves = True
-    for i in player_moves:
-        visited[i] = False
-
-
-# Auto-generated code below aims at helping you parse
-# the standard input according to the problem statement.
+# Tracks all visited nodes
+visited = {}
 
 # game loop
 while True:
-    # n: total number of players (2 to 4).
-    # p: your player number (0 to 3).
-    n, p = [int(i) for i in input().split()]
-    for i in range(n):
-        # x0: starting X coordinate of lightcycle (or -1)
-        # y0: starting Y coordinate of lightcycle (or -1)
-        # x1: starting X coordinate of lightcycle (can be the same as X0 if you play before this player)
-        # y1: starting Y coordinate of lightcycle (can be the same as Y0 if you play before this player)
+    #Gets number of players and my position in player order
+    numOfPlayers, my_id = [int(i) for i in input().split()]
+
+    #saves the player order with me at the start of the order
+    if orderSet==False:
+        order = list(range(my_id, numOfPlayers)) + list(range(0, my_id))
+        orderSet=True
+
+    # tracks the old moves
+    current_moves = []
+
+    # for each player, their positions are found and added to visited and to respective player queue.
+    # and appends current_moves to add the old moves
+    for i in range(numOfPlayers):
+
         x0, y0, x1, y1 = [int(j) for j in input().split()]
 
-        # Checks if player is dead and if they are not adds their current location to visited.
-        if x0 == -1:
-            try:
-                dead_player(playerMoves[i])
-            except TimeoutError as e:
-                workingOnDeadPlayerMoves = True
+        ##adds the current for each player to current_moves even dead player other wise it will cause problems with getting move
+        current_moves.append((x1, y1))
 
-        else:
-            visited[(x1, y1)] = True
-            playerMoves[i].put("(" + str(x1) + "," + str(y1) + ")")
+        if dead_players.__contains__(i) == False:
 
-        if i == p:
-            current_X = x0
-            current_Y = y0
+            if x0==-1:
+                output(i)
+                dead_players.append(i)
+                visited = {k: v for k, v in visited.items() if v != i}
+            else:
+                visited[(x0, y0)] = i
+                visited[(x1, y1)] = i
 
-    # Write an action using print
-    # To debug: print("Debug messages...", file=sys.stderr)
+    for player_id in range(numOfPlayers):
+        # calculates best move for "ME"
+        if player_id == my_id:
+            #Gets my current location
+            x1, y1 = current_moves[player_id]
+            myLocation = (x1, y1)
+
+            #this will hold the possible locations i can move and their scores for ranking best move
+            movesAndScores = []
+
+            # loops through neighboring tiles and gets scores for each and adds them to movesAndScores
+            for neighbour in NEIGHBOURS[myLocation]:
+                # if neighbour has not been visited yet it takes it into consideration for scoring
+                if neighbour not in visited:
+                    # copy to prevent overwriting (not really sure why this would happen but part of 5% code)
+                    player_starts = [[x] for x in current_moves.copy()]
+
+                    # changes my location from where I really am to a possible move
+                    player_starts[my_id] = [neighbour]
+
+                    # deals with dead players moves
+                    for player in dead_players:
+                        player_starts[player] = []
+
+                    # gets the scores for all the possible moves I could make and adds it to movesAndScores
+                    score = getNeighbourScore(player_starts)
+                    movesAndScores.append((score, neighbour))
+
+    # takes all the moves and looks at their index 0 which hold the score and orders them from best to worst
+    # with best move at index 0
+    bestMove = sorted(movesAndScores, key=lambda x: x[0], reverse=True)[0]
+
+    # prints prints direction
+    print(direction(myLocation, bestMove[1]))
+
 
 
