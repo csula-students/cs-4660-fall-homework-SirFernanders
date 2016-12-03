@@ -44,6 +44,104 @@ def direction(old, new):
         return "LEFT"
     return "UP"
 
+def getNeighbourScore(currentMoveLocation):
+
+    #used to hold the owner of tiles
+    graphs = {i: {} for i in range(numOfPlayers)}
+
+    #basiclly a copy of visited that can be modified
+    graphSet = set(x for x in visited)
+
+    #
+    ownerID = 1
+    # loop until no changes
+    while True:
+        # is set to false if another move is possible
+        full = True
+
+        # keeps track of who will end up owning the spots from this turn
+        moves = {}
+        for currentPlayer in order:
+            # on a single turn, for each bot, `starts` contains the possible starting positions
+            # in case of starting round, logically there is only 1 possibility
+            # so: for each possibility `possibleMove` of starting for bot `currentPlayer`
+            for possibleMove in currentMoveLocation[currentPlayer]:
+                # consider all the neighbouring tiles
+                for n in NEIGHBOURS[possibleMove]:
+                    # if n not visitable by other bots earlier
+                    if n not in graphSet or (n in moves and ownerID == 1):
+                        # make sure we will continue for at least 1 more round as we found new
+                        full = False
+                        # add to graphSet (so visited) for this instance
+                        graphSet.add(n)
+                        # register `neighbour` to belong to bot `currentPlayer`
+                        moves[n] = currentPlayer
+        # update the graph with who owns in this round
+        for k, v in moves.items():
+            graphs[v][k] = ownerID
+        if full:
+            # break since no changes were in the last round (no new possible moves)
+            break
+        # update the new possible starting positions for each bot
+        currentMoveLocation = [[k for k, v in moves.items() if v == i] for i in range(numOfPlayers)]
+        ownerID += 1
+
+    # number of tiles we are closest to (higher=better)
+    myNumTiles = len(graphs[myID])
+
+    # number of tiles enemies are closest to (lower=better)
+    enemyTiles = sum([len(graphs[i]) for i in range(numOfPlayers) if i != myID])
+
+    # summed distance for reaching each tile for all enemies (higher=better)
+    enemyDist = sum([sum(graphs[i].values()) for i in range(numOfPlayers) if i != myID])
+
+    # simple weighting, importance: num_my_tiles > enemyTiles > enemyDist
+    ################################################################################
+    #    Testing NEEDED to see find best weighting will stick to default for now. #
+    ###############################################################################
+    return sum([myNumTiles * 10000000, enemyTiles * -100000, enemyDist])
+
+def settingMyMove(movesAndScores, myLocation):
+    # takes all the moves and looks at their index 0 which hold the score and orders them from best to worst
+    # with best move at index 0
+    move = sorted(movesAndScores, key=lambda x: x[0], reverse=True)[0]
+    global bestMove
+    bestMove = (direction(myLocation, move[1]))
+
+
+@timeout(0.098)
+def findBestMove():
+    for playerID in order:
+        if deadPlayers.__contains__(playerID)==False:
+            # calculates best move for "ME"
+            #Gets my current location
+            x1, y1 = currentMoves[playerID]
+            myLocation = (x1, y1)
+
+            #this will hold the possible locations i can move and their scores for ranking best move
+            movesAndScores = []
+
+            # loops through neighboring tiles and gets scores for each and adds them to movesAndScores
+            for neighbour in NEIGHBOURS[myLocation]:
+                # if neighbour has not been visited yet it takes it into consideration for scoring
+                if neighbour not in visited:
+                    # copy to prevent overwriting (not really sure why this would happen but part of 5% code)
+                    playerStartLocations = [[x] for x in currentMoves.copy()]
+
+                    # changes my location from where I really am to a possible move
+                    playerStartLocations[myID] = [neighbour]
+
+                    # deals with dead players moves
+                    for player in deadPlayers:
+                        playerStartLocations[player] = []
+
+                    # gets the scores for all the possible moves I could make and adds it to movesAndScores
+                    score = getNeighbourScore(playerStartLocations)
+                    movesAndScores.append((score, neighbour))
+            if playerID == myID:
+                settingMyMove(movesAndScores,myLocation)
+
+
 # neighbors is Dic of all possible neighbors for any given node
 NEIGHBOURS = {(7, 3): [(8, 3), (6, 3), (7, 4), (7, 2)], (6, 9): [(7, 9), (5, 9), (6, 10), (6, 8)],
              (17, 11): [(18, 11), (16, 11), (17, 12), (17, 10)], (19, 19): [(20, 19), (18, 19), (19, 18)],
@@ -352,77 +450,59 @@ orderSet = False
 
 #Variables for tracking dead players
 workingOnDeadPlayerMoves = False
-dead_players =[]
+deadPlayers =[]
 
 # Tracks all visited nodes
 visited = {}
 
+
+bestMove =""
+
 # game loop
 while True:
     #Gets number of players and my position in player order
-    numOfPlayers, my_id = [int(i) for i in input().split()]
+    numOfPlayers, myID = [int(i) for i in input().split()]
+
+
 
     #saves the player order with me at the start of the order
     if orderSet==False:
-        order = list(range(my_id, numOfPlayers)) + list(range(0, my_id))
+        order = list(range(myID, numOfPlayers)) + list(range(0, myID))
         orderSet=True
 
     # tracks the old moves
-    current_moves = []
+    currentMoves = []
 
-    # for each player, their positions are found and added to visited and to respective player queue.
-    # and appends current_moves to add the old moves
+    # for each player it gets their last location and their new location
+    # new location is added to currentMoves and also to visited
+    # if player is dead their moves are removed from visited list
     for i in range(numOfPlayers):
 
         x0, y0, x1, y1 = [int(j) for j in input().split()]
 
         ##adds the current for each player to current_moves even dead player other wise it will cause problems with getting move
-        current_moves.append((x1, y1))
+        currentMoves.append((x1, y1))
 
-        if dead_players.__contains__(i) == False:
+        if deadPlayers.__contains__(i) == False:
 
             if x0==-1:
-                output(i)
-                dead_players.append(i)
+
+                deadPlayers.append(i)
+                #searchs through visited and makes a new list with only nodes that have alive players and puts it in visited.
                 visited = {k: v for k, v in visited.items() if v != i}
             else:
                 visited[(x0, y0)] = i
                 visited[(x1, y1)] = i
 
-    for player_id in range(numOfPlayers):
-        # calculates best move for "ME"
-        if player_id == my_id:
-            #Gets my current location
-            x1, y1 = current_moves[player_id]
-            myLocation = (x1, y1)
+    #Tries to find best possible move if times out it does last known best move
+    try:
+        findBestMove()
+    except TimeoutError as e:
+        output("timeout")
+        print(bestMove)
 
-            #this will hold the possible locations i can move and their scores for ranking best move
-            movesAndScores = []
-
-            # loops through neighboring tiles and gets scores for each and adds them to movesAndScores
-            for neighbour in NEIGHBOURS[myLocation]:
-                # if neighbour has not been visited yet it takes it into consideration for scoring
-                if neighbour not in visited:
-                    # copy to prevent overwriting (not really sure why this would happen but part of 5% code)
-                    player_starts = [[x] for x in current_moves.copy()]
-
-                    # changes my location from where I really am to a possible move
-                    player_starts[my_id] = [neighbour]
-
-                    # deals with dead players moves
-                    for player in dead_players:
-                        player_starts[player] = []
-
-                    # gets the scores for all the possible moves I could make and adds it to movesAndScores
-                    score = getNeighbourScore(player_starts)
-                    movesAndScores.append((score, neighbour))
-
-    # takes all the moves and looks at their index 0 which hold the score and orders them from best to worst
-    # with best move at index 0
-    bestMove = sorted(movesAndScores, key=lambda x: x[0], reverse=True)[0]
-
-    # prints prints direction
-    print(direction(myLocation, bestMove[1]))
+    # prints direction if found
+    print(bestMove)
 
 
 
