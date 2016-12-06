@@ -332,7 +332,7 @@ def assignPlayerOrder():
     global playerOrder
     global orderSaved
 
-    playerOrder = list(range(myID,numOfPlayers)+range(0,myID))
+    playerOrder = list(range(myID,numOfPlayers))+list(range(0,myID))
     orderSaved = True
 
 def deadPlayersWipe(playerID):
@@ -341,21 +341,47 @@ def deadPlayersWipe(playerID):
 
 @timeout(0.095)
 def findNextMove():
-    global bestDirection
+    tempVisited = visitedTiles.copy()
+
+    for playerID in playerOrder:
+        if deadPlayers.__contains__(playerID)==False:
+            neighboursAndValues = []
+
+            x, y =  turnMoves[playerID]
+
+            playerLocation = (x, y)
+
+            for neighbour in NEIGHBOURS[playerLocation]:
+                if neighbour not in tempVisited:
+                    locationsOfPlayers = [[location] for location in turnMoves.copy()]
+
+                    locationsOfPlayers[myID] = [neighbour]
+
+                    for player in deadPlayers:
+                        locationsOfPlayers[player] = []
+
+                    value = tileValueCalc(locationsOfPlayers, tempVisited)
+                    neighboursAndValues.append((value, neighbour))
+            if myID == playerID:
+                tilePicker(playerLocation, neighboursAndValues)
 
 
-def tileValueCalc():
+def tileValueCalc(locationsOfPlayers, tempVisited):
     value = 0
 
     return value
 
+
+def tilePicker(myLocation, neighboursAndValues):
+    directionTranslator(myLocation,(sorted(neighboursAndValues, key=lambda temp: temp[0], reverse = True)[0])[1])
+
 def directionTranslator(current, next):
     global bestDirection
-    if current[1]<next[1]:
+    if current[1] < next[1]:
         bestDirection = "DOWN"
-    elif current[1]>next[1]:
+    elif current[1] > next[1]:
         bestDirection = "UP"
-    elif current[0]<next[0]:
+    elif current[0] < next[0]:
         bestDirection = "RIGHT"
     else:
         bestDirection = "LEFT"
@@ -379,7 +405,7 @@ while True:
     # p: your player number (0 to 3).
     numOfPlayers, myID = [int(i) for i in input().split()]
 
-    if playerOrder == False:
+    if orderSaved == False:
         assignPlayerOrder()
 
     turnMoves = []
@@ -398,10 +424,7 @@ while True:
 
         turnMoves.append((x1,y1))
 
-    try:
-        findNextMove()
-    except TimeoutError as timeError:
-        output("timed out returned last best known direction")
-        print(bestDirection)
+
+    findNextMove()
 
     print(bestDirection)
