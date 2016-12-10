@@ -339,6 +339,38 @@ def deadPlayersWipe(playerID):
     global visitedTiles
     visitedTiles = {temp: tiles for temp, tiles in visitedTiles.items() if tiles != playerID}
 
+def tileValueCalc(locationsOfPlayers, tempVisited, playerID):
+
+    currentID = 1
+    copyTiles = set(x for x in tempVisited)
+    playerGraphs = {i: {} for i in range(numOfPlayers)}
+    while True:
+
+        finished = True
+        moves = {}
+
+        for player in playerOrder:
+            for move in locationsOfPlayers[player]:
+                if move not in copyTiles or (move in moves and id ==1):
+                    finished = False
+                    copyTiles.add(move)
+                    moves[move]= player
+        for u, q in moves.items():
+            playerGraphs[q][u] = currentID
+        if finished:
+            break
+        locationsOfPlayers = [[i for i, v in moves.items() if v ==g] for g in range(numOfPlayers)]
+        currentID+=1
+
+    enemyTiles = sum([len(playerGraphs[i]) for i in range(numOfPlayers) if i != myID])
+
+    myTiles = len(playerGraphs[playerID])
+
+    enemyDist = sum([sum(playerGraphs[i].values()) for i in range(numOfPlayers) if i != playerID])
+
+    value = sum([myTiles*10000000,enemyTiles * -100000, enemyDist])
+    return value
+
 @timeout(0.095)
 def findNextMove():
     tempVisited = visitedTiles.copy()
@@ -360,16 +392,10 @@ def findNextMove():
                     for player in deadPlayers:
                         locationsOfPlayers[player] = []
 
-                    value = tileValueCalc(locationsOfPlayers, tempVisited)
+                    value = tileValueCalc(locationsOfPlayers, tempVisited, myID)
                     neighboursAndValues.append((value, neighbour))
             if myID == playerID:
                 tilePicker(playerLocation, neighboursAndValues)
-
-
-def tileValueCalc(locationsOfPlayers, tempVisited):
-    value = 0
-
-    return value
 
 
 def tilePicker(myLocation, neighboursAndValues):
@@ -396,7 +422,7 @@ orderSaved = False
 
 deadPlayers = []
 
-bestDirection = ""
+bestDirection = "LEFT"
 #################################
 
 # game loop
@@ -413,6 +439,8 @@ while True:
     for playerID in range(numOfPlayers):
         x0, y0, x1, y1 = [int(j) for j in input().split()]
 
+        turnMoves.append((x1, y1))
+
         if deadPlayers.__contains__(playerID) == False:
             if x0==-1:
                 deadPlayers.append(playerID)
@@ -422,9 +450,10 @@ while True:
                 visitedTiles[(x0,y0)] = playerID
                 visitedTiles[(x1,y1)] = playerID
 
-        turnMoves.append((x1,y1))
-
-
-    findNextMove()
+    try:
+        findNextMove()
+    except TimeoutError as e:
+        output("timeout")
+        print(bestDirection)
 
     print(bestDirection)
